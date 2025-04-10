@@ -1,6 +1,10 @@
-# Admin have full access to any project
-# Managers can view projects within their departments
+# ABAC 
+## Este es el proyecto ABAC funcionando con una simple validacion basada en un objeto
+### Desarrollado para implementar en la app M-Line-App
 
-# Employees can only view or update projects if they are part of the project team
-# or if the project's access level is within their access level
+1- To run 
+```bash
+npm run dev
+```
+
 

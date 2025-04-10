@@ -2,7 +2,7 @@ const mockDatabase = [
 	{
 		id: 'canViewProject',
 		conditions: [
-			// { field: 'role', operator: 'equals', value: 'admin' },
+			{ field: 'role', operator: 'equals', value: 'admin' },
 			{ field: 'department', operator: 'equals', value: 'project.department' },
 			{ field: 'accessLevel', operator: 'greaterOrEqual', value: 'project.accessLevel' },
 			{ field: 'team', operator: 'includes', value: 'user.id' },
@@ -17,19 +17,28 @@ const mockDatabase = [
 	},
 ];
 
-export const evaluatePolicy = (policy, user, project) => {
+export const evaluatePolicy = (policy, user, resource) => {
 	return policy.conditions.every((condition) => {
 		const { field, operator, value } = condition;
 
 		// Obtener el valor del campo dinámicamente
-		const fieldValue = field.includes('.')
-			? field.split('.').reduce((obj, key) => obj[key], { user, project })
-			: user[field] || project[field];
+		console.log(resource);
 
-		const resolvedValue =
-			typeof value === 'string' && value.includes('.')
-				? value.split('.').reduce((obj, key) => obj[key], { user, project })
-				: value;
+		let fieldValue;
+		if (field.includes('.')) {
+			fieldValue = field.split('.').reduce((obj, key) => obj[key], { user, project: resource });
+		} else {
+			fieldValue = user[field] || resource[field];
+		}
+
+		let resolvedValue;
+		if (typeof value === 'string' && value.includes('.')) {
+			resolvedValue = value.split('.').reduce((obj, key) => obj[key], { user, project: resource })
+		} else {
+			resolvedValue = value;
+		}
+
+		console.log('field',field, 'value', value, 'field', fieldValue, 'value', resolvedValue);
 
 		switch (operator) {
 			case 'equals':
@@ -68,9 +77,6 @@ export const updatePolicy = async (req, res) => {
 export const canPerformAction = async (policyId, user, project) => {
 	const policy = await getPolicyFromDatabase(policyId); // Cargar política desde la DB
 	if (!policy) throw new Error(`Policy ${policyId} not found`);
-	// console.log(policy, user, project);
-	// console.log(evaluatePolicy(policy, user, project));
-	// console.log('evaluate', evaluatePolicy(policy, user, project));
 	return evaluatePolicy(policy, user, project);
 };
 
